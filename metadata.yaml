@@ -1,0 +1,21 @@
+id: cvt_temp_public_id
+version: 1
+display_name: Fallback Number
+description: >-
+  GTM Server variable to convert order values between currencies using exchange rates from CurrencyAPI.com, with error handling and support for customizable base currency.
+author:
+  name: Stefano Ghisoni
+  url: https://stefanoghisoni.it
+  email: info@stefanoghisoni.it
+homepage: "https://stefanoghisoni.it"
+documentation: "/currency-change-rate/docs"
+container_contexts:
+  - SERVER
+license: Apache-2.0
+versions:
+  - sha: 223a734
+    changeNotes: |2
+      Fix bug with string normalization.
+      Improved error handling.
+  - sha: 109c4a8
+    changeNotes: Initial release.
