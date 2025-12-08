@@ -2,7 +2,7 @@ id: cvt_temp_public_id
 version: 1
 display_name: Fallback Number
 description: >-
-  GTM Server variable to convert order values between currencies using exchange rates from CurrencyAPI.com, with error handling and support for customizable base currency.
+  GTM Server variable that returns the first valid numeric value from a primary input or fallback list—ensuring reliable numeric data without conversion errors.
 author:
   name: Stefano Ghisoni
   url: https://stefanoghisoni.it
