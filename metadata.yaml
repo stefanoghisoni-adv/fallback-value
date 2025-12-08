@@ -13,9 +13,6 @@ container_contexts:
   - SERVER
 license: Apache-2.0
 versions:
-  - sha: 223a734
+  - sha: bb1c3e5
     changeNotes: |2
-      Fix bug with string normalization.
-      Improved error handling.
-  - sha: 109c4a8
-    changeNotes: Initial release.
+      Initial release.
