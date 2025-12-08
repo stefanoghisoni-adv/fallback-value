@@ -12,6 +12,7 @@ ___INFO___
   "type": "MACRO",
   "id": "cvt_temp_public_id",
   "version": 1,
+  "categories": ["UTILITIES"],
   "securityGroups": [],
   "displayName": "Fallback Number",
   "description": "Smart number fallback variable that returns the first valid numeric value from primary or fallback list—ensuring reliable numeric data without conversion errors.",
