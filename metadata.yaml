@@ -1,18 +1,5 @@
-id: cvt_temp_public_id
-version: 1
-display_name: Fallback Number
-description: >-
-  GTM Server variable that returns the first valid numeric value from a primary input or fallback list—ensuring reliable numeric data without conversion errors.
-author:
-  name: Stefano Ghisoni
-  url: https://stefanoghisoni.it
-  email: info@stefanoghisoni.it
 homepage: "https://stefanoghisoni.it"
-documentation: "/fallback-number/docs"
-container_contexts:
-  - SERVER
-license: Apache-2.0
+documentation: "https://stefanoghisoni.it/fallback-number/docs"
 versions:
-  - sha: bb1c3e5
-    changeNotes: |2
-      Initial release.
+  - sha: INSERISCI_QUI_LO_SHA_COMPLETO_A_40_CARATTERI
+    changeNotes: "Initial release."
