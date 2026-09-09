@@ -43,31 +43,23 @@ This variable is useful in **Server-Side GTM** setups where you may have multipl
 
 The template exposes these fields:
 
-- **Primary value** (number): The main numeric input to use if valid.  
-- **Fallback values** (simple table): A list of fallback numeric values to check if primary is invalid.
+- **Primary value** (`primaryValue`): The main numeric input to use if valid.  
+- **Fallback values** (`fallbackList`): A list of fallback numeric values to check if primary is invalid.
 
-The variable returns the first valid number it finds, or `null` if none are valid.
-
----
-
-## 👤 Authors
-
-Stefano Ghisoni  
-https://stefanoghisoni.it  
-info@stefanoghisoni.it
+The variable evaluates the primary value first; if invalid (e.g., `null`, `undefined`, `NaN`), it iterates through the fallback list and returns the first valid number it finds. If none are valid, it returns `null`.
 
 ---
 
-## 📜 License & Terms
+## 👤 Author
 
-© 2025 Stefano Ghisoni. All rights reserved.
+**Stefano Ghisoni**  
+Website: [https://stefanoghisoni.it](https://stefanoghisoni.it)  
+Email: [info@stefanoghisoni.it](mailto:info@stefanoghisoni.it)
 
-Use, modification, and redistribution are permitted only with explicit permission from the author.
+---
+
+## 📜 License
+
+Licensed under the [Apache License, Version 2.0](LICENSE).
 
 Google Tag Manager is a registered trademark of Google LLC.
-
-This software is provided "as is", without any warranties or guarantees.
-
-Please retain original attribution when using or distributing this code.
-
-For infringement reports or commercial license inquiries, contact: info@stefanoghisoni.it
