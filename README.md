@@ -2,7 +2,7 @@ By using or modifying this template, you agree to the
 Google Tag Manager Community Template Gallery Developer Terms of Service:  
 https://developers.google.com/tag-manager/gallery-tos
 
-# Fallback Number – GTM Server Variable
+# Fallback Value – GTM Server Variable
 
 A smart and reliable **Server-Side Google Tag Manager Variable** that returns the first valid numeric value from a primary input or a list of fallback values. This ensures your numeric data is consistent and prevents errors caused by invalid or missing numbers.
 
@@ -10,7 +10,7 @@ A smart and reliable **Server-Side Google Tag Manager Variable** that returns th
 
 ## 🚀 What This Variable Does
 
-The **Fallback Number** variable:
+The **Fallback Value** variable:
 
 - Accepts a primary numeric input value  
 - Accepts a list of fallback numeric values  
