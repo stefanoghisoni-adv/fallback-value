@@ -1,5 +1,5 @@
 homepage: "https://stefanoghisoni.it"
 documentation: "https://stefanoghisoni.it/fallback-number/docs"
 versions:
-  - sha: INSERISCI_QUI_LO_SHA_COMPLETO_A_40_CARATTERI
+  - sha: e9c7cfd653908a278fd17e864476b3434fa2cfd0
     changeNotes: "Initial release."
