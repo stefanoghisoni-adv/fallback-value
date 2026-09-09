@@ -61,29 +61,23 @@ var primaryValue = data.primary_value;
 var altValues = data.alt_value || [];
 
 function isInvalid(v) {
-  // null, undefined, false
   if (v === null || v === undefined || v === false) return true;
 
-  // Numeri: esclude NaN
   if (typeof v === "number") {
-    return v !== v; // NaN check
+    return v !== v;
   }
 
-  // Stringhe: esclude vuote o solo spazi
   if (typeof v === "string") {
     return v.trim() === "";
   }
 
-  // Altri tipi (object, function, ecc.)
   return true;
 }
 
-// Primary value
 if (!isInvalid(primaryValue)) {
   return primaryValue;
 }
 
-// Fallback values
 for (var i = 0; i < altValues.length; i++) {
   var val = altValues[i].column1;
   if (!isInvalid(val)) {
@@ -180,5 +174,3 @@ scenarios:
 ___NOTES___
 
 Created on 09/02/2026, 12:08:21
-
-
