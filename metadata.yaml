@@ -1,5 +1,5 @@
 homepage: "https://stefanoghisoni.it"
 documentation: "https://github.com/stefanoghisoni-adv/fallback-value/blob/main/README.md"
 versions:
-  - sha: e9c7cfd653908a278fd17e864476b3434fa2cfd0
+  - sha: 626d846eb265f327b6eee978dca4f6db8fbe7456
     changeNotes: "Initial release."
