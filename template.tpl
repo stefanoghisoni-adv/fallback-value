@@ -14,7 +14,7 @@ ___INFO___
   "version": 1,
   "categories": ["UTILITIES"],
   "securityGroups": [],
-  "displayName": "Fallback Number",
+  "displayName": "Fallback Value",
   "description": "Smart number fallback variable that returns the first valid numeric value from primary or fallback list—ensuring reliable numeric data without conversion errors.",
 
   "metadata": {
