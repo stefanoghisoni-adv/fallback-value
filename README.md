@@ -4,19 +4,18 @@ https://developers.google.com/tag-manager/gallery-tos
 
 # Fallback Value – GTM Server Variable
 
-A smart and reliable **Server-Side Google Tag Manager Variable** that returns the first valid value from a primary input or an ordered list of fallback values.
+**Fallback Value** is a Server-Side Google Tag Manager variable that returns the first usable value from a primary input or an ordered list of fallback values.
 
-Unlike a basic fallback or coalesce mechanism, **Fallback Value** also performs built-in value validation before returning a result. It preserves the original value type and automatically rejects invalid, empty, or provider-specific placeholder values such as Stape's `ZZ`.
+Unlike a basic fallback or coalesce mechanism, the variable also performs built-in value validation before returning a result. It preserves the original value type, rejects invalid or empty values, and can optionally reject Stape's `ZZ` geographic placeholder when working with Stape geographic data.
 
 ---
 
-## 🚀 What This Variable Does
+## What This Variable Does
 
 The **Fallback Value** variable:
 
-- Accepts a primary value
-- Accepts an ordered list of fallback values
-- Evaluates the primary value first
+- Evaluates a primary value first
+- Evaluates fallback values in order when the primary value is invalid
 - Returns the first valid value found
 - Preserves the original value type
 - Keeps numeric `0` as a valid value
@@ -26,31 +25,20 @@ The **Fallback Value** variable:
 - Rejects `NaN`
 - Rejects empty strings
 - Rejects whitespace-only strings
-- Rejects Stape's `ZZ` geographic placeholder
-- Rejects unsupported data types such as objects and functions
-- Returns `undefined` if no valid value is found
+- Rejects objects, functions, and unsupported data types
+- Can optionally reject Stape's uppercase `ZZ` geographic placeholder
+- Returns `undefined` when no valid value is available
 
 This makes the variable useful not only for fallback logic, but also for sanitizing server-side values before they are passed to downstream analytics, advertising, or API tags.
 
-**Examples:**
-
-| Primary Value | Fallback Values | Output |
-|---------------|-----------------|--------|
-| `42` | `[10, 20, 30]` | `42` |
-| `NaN` | `[null, 0, 99]` | `0` |
-| `null` | `["", "EUR", "USD"]` | `"EUR"` |
-| `"ZZ"` | `["IT", "DE"]` | `"IT"` |
-| `"   "` | `[false, 25]` | `25` |
-| `null` | `[null, false, undefined]` | `undefined` |
-
 ---
 
-## ✅ Validation Rules
+## Validation Rules
 
-A value is considered invalid when it matches one of the following conditions:
+The following validation rules are always applied:
 
 | Value | Result |
-|-------|--------|
+|---|---|
 | `null` | Ignored |
 | `undefined` | Ignored |
 | `false` | Ignored |
@@ -58,42 +46,142 @@ A value is considered invalid when it matches one of the following conditions:
 | `NaN` | Ignored |
 | `""` | Ignored |
 | `"   "` | Ignored |
-| `"ZZ"` | Ignored |
 | Object | Ignored |
 | Function | Ignored |
 | `0` | Valid |
 | Valid number | Valid |
 | Valid string | Valid |
 
-The exact string `ZZ` is treated as invalid because it can be returned by Stape or other server-side data sources as a placeholder when geographic information is unavailable.
+The handling of `ZZ` depends on the **Stape code** option.
 
-Numeric `0` remains valid and is not treated as an empty or falsy fallback value.
+| Value | Stape option disabled | Stape option enabled |
+|---|---|---|
+| `"ZZ"` | Valid | Ignored |
+| `" ZZ "` | Valid | Ignored |
+| `"IT"` | Valid | Valid |
+| `"Lombardia"` | Valid | Valid |
+| `0` | Valid | Valid |
+
+The check is applied after trimming leading and trailing whitespace.
+
+Only the uppercase value `ZZ` is specifically treated as the Stape placeholder.
 
 ---
 
-## 🧩 Use Cases
+## Stape Geographic Code Handling
 
-This variable is useful in **Server-Side Google Tag Manager** setups where the same logical value may come from multiple possible sources and some of those sources may return invalid, empty, or placeholder data.
+The template includes the optional checkbox:
+
+**This variable is using Stape code (as country, zipcode, city and state)**
+
+Internally, this option is represented by:
+
+`stape_country_code`
+
+The checkbox is disabled by default.
+
+### Checkbox disabled
+
+When the option is not selected, `ZZ` is treated like any other non-empty string.
+
+Example:
+
+**Primary value**
+
+`ZZ`
+
+**Fallback values**
+
+1. `IT`
+2. `DE`
+
+**Output**
+
+`ZZ`
+
+---
+
+### Checkbox enabled
+
+When the option is selected, the exact uppercase value `ZZ` is treated as invalid.
+
+The template then continues evaluating the configured fallback values.
+
+Example:
+
+**Primary value**
+
+`ZZ`
+
+**Fallback values**
+
+1. `IT`
+2. `DE`
+
+**Output**
+
+`IT`
+
+The same behavior applies if the value contains surrounding whitespace:
+
+`" ZZ "`
+
+After trimming, the value becomes `ZZ` and is rejected.
+
+---
+
+## Why Stape `ZZ` Handling Is Optional
+
+In server-side tracking environments, the value `ZZ` can be used as a geographic placeholder when information such as country, region, city, or other location-related data cannot be resolved.
+
+However, `ZZ` may also be a legitimate string in contexts unrelated to Stape geographic data.
+
+For this reason, Fallback Value does not reject `ZZ` globally.
+
+Instead, the behavior is explicitly enabled only when the variable is being used with Stape geographic values.
+
+This prevents provider-specific sanitization rules from being applied to unrelated data.
+
+---
+
+## Examples
+
+| Primary Value | Fallback Values | Stape Option | Output |
+|---|---|---|---|
+| `42` | `[10, 20, 30]` | Off | `42` |
+| `NaN` | `[null, 0, 99]` | Off | `0` |
+| `null` | `["", "EUR", "USD"]` | Off | `"EUR"` |
+| `"   "` | `[false, 25]` | Off | `25` |
+| `"ZZ"` | `["IT", "DE"]` | Off | `"ZZ"` |
+| `"ZZ"` | `["IT", "DE"]` | On | `"IT"` |
+| `" ZZ "` | `["Liguria", "IT"]` | On | `"Liguria"` |
+| `null` | `[null, false, undefined]` | Off | `undefined` |
+
+---
+
+## Use Cases
+
+This variable is useful in **Server-Side Google Tag Manager** environments where the same logical value may come from multiple possible sources and some of those sources may return invalid, empty, or provider-specific placeholder data.
 
 Common use cases include:
 
 - Falling back between Event Data, request headers, cookies, or custom variables
-- Selecting the first available country, region, or geographic value
-- Ignoring Stape's `ZZ` geographic placeholder
-- Prioritizing ecommerce values from multiple sources
+- Selecting the first available country, region, city, or ZIP code
+- Handling Stape geographic values that may resolve to `ZZ`
+- Prioritizing ecommerce values from multiple data sources
 - Falling back between different revenue or order value fields
 - Handling incomplete or inconsistent client data
 - Handling incomplete data received from APIs
 - Preventing empty values from being passed to downstream tags
 - Preventing invalid numeric values such as `NaN` from being propagated
-- Preserving numeric `0` as a valid result
+- Preserving numeric `0` as a valid value
 - Preserving the original data type of the selected value
 
 ---
 
-## ⚙️ How It Works
+## How It Works
 
-The template exposes two main fields:
+The template exposes a primary value, an optional Stape-specific validation setting, and an ordered list of fallback values.
 
 ### Primary value
 
@@ -101,27 +189,33 @@ The template exposes two main fields:
 
 The primary value is evaluated first.
 
-It can be:
+It can contain:
 
 - A Google Tag Manager variable
 - A static string
 - A numeric value
 
-If the primary value is valid, it is immediately returned and no fallback value is used.
+If the primary value is valid, it is immediately returned.
 
-Example:
+If the primary value is invalid, the template starts evaluating the configured fallback values.
 
-**Primary value**
+---
 
-`{{Event Data - region}}`
+### Stape code
 
-If it resolves to:
+`stape_country_code`
 
-`Lombardia`
+Optional checkbox used to enable special handling for Stape geographic placeholder values.
 
-the variable returns:
+When disabled:
 
-`Lombardia`
+`ZZ` → valid
+
+When enabled:
+
+`ZZ` → invalid
+
+The checkbox affects both the primary value and every configured fallback value.
 
 ---
 
@@ -129,79 +223,69 @@ the variable returns:
 
 `alt_value`
 
-Fallback values are evaluated sequentially from top to bottom.
+An ordered list of alternative values.
 
-If the primary value is invalid, the variable checks each fallback value until it finds the first valid one.
+If the primary value is invalid, each fallback value is evaluated sequentially from top to bottom.
 
-Example:
+The first valid fallback is returned.
 
-**Primary value**
-
-`{{Event Data - region}}`
-
-**Fallback values**
-
-1. `{{Request Header - Region}}`
-2. `{{Geo Lookup - Region}}`
-3. `IT`
-
-If the values resolve to:
-
-- `{{Event Data - region}}` → `ZZ`
-- `{{Request Header - Region}}` → `""`
-- `{{Geo Lookup - Region}}` → `Lombardia`
-
-the final output is:
-
-`Lombardia`
-
-If no valid value exists, the variable returns:
+If every configured value is invalid, the output is:
 
 `undefined`
 
 ---
 
-## 🔄 Evaluation Order
+## Evaluation Flow
 
-Values are always evaluated in this order:
+The template evaluates values in the following order:
 
-1. Primary value
-2. First fallback value
-3. Second fallback value
-4. Third fallback value
-5. Any additional fallback values
-
-The first valid value immediately becomes the output.
+1. Evaluate the primary value
+2. Apply the standard validation rules
+3. If Stape mode is enabled, reject `ZZ`
+4. Return the primary value if valid
+5. Otherwise evaluate the first fallback value
+6. Apply the same validation rules
+7. Continue through the fallback list until a valid value is found
+8. Return `undefined` if no valid value exists
 
 Conceptually:
 
     Primary value
-          ↓
-        Valid?
-       /      \
-     Yes       No
-      ↓         ↓
-    Return   Fallback 1
-                ↓
-              Valid?
-             /      \
-           Yes       No
-            ↓         ↓
-          Return   Fallback 2
-                       ↓
-                      ...
-                       ↓
-               No valid value
-                       ↓
-                  undefined
+          |
+          v
+    Standard validation
+          |
+          v
+    Stape mode enabled?
+       /        \
+     Yes         No
+      |           |
+ Reject ZZ     Keep ZZ
+       \        /
+          |
+          v
+       Valid?
+      /      \
+    Yes       No
+     |         |
+   Return   Fallback 1
+               |
+               v
+            Repeat
+               |
+               v
+       No valid values
+               |
+               v
+          undefined
 
 ---
 
-## 🔢 Numeric Zero Handling
+## Numeric Zero Handling
 
 Numeric `0` is considered a valid value.
 
-For example:
+Example:
 
 **Primary value**
 
@@ -209,10 +293,10 @@ For example:
 
 **Fallback values**
 
-- `99`
-- `100`
+1. `99`
+2. `100`
 
-Output:
+**Output**
 
 `0`
 
@@ -220,11 +304,11 @@ This prevents a common fallback issue where generic falsy-value checks incorrect
 
 ---
 
-## 🔎 NaN Handling
+## NaN Handling
 
 `NaN` is considered invalid.
 
-For example:
+Example:
 
 **Primary value**
 
@@ -232,28 +316,28 @@ For example:
 
 **Fallback values**
 
-- `0`
-- `25`
+1. `0`
+2. `25`
 
-Output:
+**Output**
 
 `0`
 
-This prevents an invalid numeric value from being propagated to downstream tags.
+This prevents invalid numeric values from being propagated to downstream tags.
 
 ---
 
-## 🧹 Empty String Handling
+## Empty String Handling
 
 The template rejects both completely empty strings and strings containing only whitespace.
 
-The following values are therefore invalid:
+The following values are invalid:
 
 - `""`
 - `" "`
 - `"   "`
 
-For example:
+Example:
 
 **Primary value**
 
@@ -261,75 +345,21 @@ For example:
 
 **Fallback values**
 
-- `EUR`
-- `USD`
+1. `EUR`
+2. `USD`
 
-Output:
+**Output**
 
 `EUR`
 
 ---
 
-## 🌍 Stape `ZZ` Handling
+## Type Preservation
 
-Server-side environments may return placeholder values when geographic information cannot be resolved.
-
-One relevant example is:
-
-`ZZ`
-
-This value may appear in geographic data where the actual country, region, or location is unavailable.
-
-**Fallback Value** automatically treats the exact string `ZZ` as invalid.
-
-Example:
-
-**Primary value**
-
-`ZZ`
-
-**Fallback values**
-
-- `IT`
-- `DE`
-- `FR`
-
-Output:
-
-`IT`
-
-Another example:
-
-**Primary value**
-
-`{{Stape - X-Geo-Region}}`
-
-**Fallback values**
-
-1. `{{Event Data - region}}`
-2. `{{Custom Geo Variable}}`
-
-If:
-
-- `{{Stape - X-Geo-Region}}` → `ZZ`
-- `{{Event Data - region}}` → `Liguria`
-
-the output is:
-
-`Liguria`
-
-This prevents unresolved geographic placeholders from being propagated to analytics or advertising platforms when another usable value is available.
-
----
-
-## 🧬 Type Preservation
-
-Fallback Value preserves the original type of valid values instead of converting everything to a string.
-
-For example:
+Fallback Value preserves the original type of valid values instead of converting them to strings before returning them.
 
 | Input | Output | Type |
-|-------|--------|------|
+|---|---|---|
 | `0` | `0` | Number |
 | `"0"` | `"0"` | String |
 | `49.90` | `49.90` | Number |
@@ -340,91 +370,102 @@ This can be important in Server-Side GTM because downstream templates, APIs, and
 
 ---
 
-## 🆚 Difference From a Standard Coalesce Variable
-
-A standard coalesce variable generally checks multiple values and returns the first populated or non-empty value.
-
-**Fallback Value** additionally performs built-in server-side validation before accepting a value.
-
-It automatically handles:
-
-- `null`
-- `undefined`
-- Boolean values
-- `NaN`
-- Empty strings
-- Whitespace-only strings
-- Stape's `ZZ` geographic placeholder
-- Unsupported object or function values
-
-It also preserves the original type of valid strings and numbers rather than forcing the selected value into a string representation.
-
-This makes the template particularly useful in server-side data pipelines where a populated value is not necessarily a usable value.
-
----
-
-## 🖥️ Why This Matters in Server-Side GTM
-
-Server-side containers frequently receive the same information from different sources.
-
-For example, a country or region may be available from:
-
-- Event Data
-- Request headers
-- Stape geographic headers
-- Cookies
-- Custom variables
-- API responses
-- Static fallback values
-
-Some sources may return a valid value while others may return:
-
-- `undefined`
-- `null`
-- `false`
-- `NaN`
-- `""`
-- `"   "`
-- `ZZ`
-
-Without additional validation, some of these values may incorrectly be treated as usable and sent to downstream platforms.
-
-Fallback Value combines ordered fallback logic with built-in validation so that only a usable value is returned.
-
----
-
-## 📍 Example: Geographic Data
+## Example: Stape Geographic Data
 
 **Primary value**
 
-`{{Stape - X-Geo-Region}}`
+`{{Stape - Country Code}}`
+
+**Stape code option**
+
+Enabled
+
+**Fallback values**
+
+1. `{{Event Data - country}}`
+2. `{{Request Header - Country}}`
+3. `IT`
+
+Suppose the variables resolve to:
+
+- `{{Stape - Country Code}}` → `ZZ`
+- `{{Event Data - country}}` → `""`
+- `{{Request Header - Country}}` → `IT`
+
+The template evaluates:
+
+`ZZ` → rejected because Stape mode is enabled
+
+`""` → rejected because it is empty
+
+`IT` → valid
+
+**Output**
+
+`IT`
+
+---
+
+## Example: Stape Region
+
+**Primary value**
+
+`{{Stape - Region}}`
+
+**Stape code option**
+
+Enabled
 
 **Fallback values**
 
 1. `{{Event Data - region}}`
-2. `{{Request Header - Region}}`
-3. `{{Geo Lookup - Region}}`
+2. `{{Custom Geo Variable}}`
 
 Suppose the variables resolve to:
 
-- `{{Stape - X-Geo-Region}}` → `ZZ`
-- `{{Event Data - region}}` → `""`
-- `{{Request Header - Region}}` → `Lombardia`
-- `{{Geo Lookup - Region}}` → `IT-25`
+- `{{Stape - Region}}` → `ZZ`
+- `{{Event Data - region}}` → `Liguria`
 
-Output:
+**Output**
 
-`Lombardia`
-
-The first two values are rejected and the first valid fallback is returned.
+`Liguria`
 
 ---
 
-## 🛒 Example: Ecommerce Value
+## Example: Non-Stape Data
+
+The Stape option should remain disabled when `ZZ` should be accepted as a legitimate value.
+
+**Primary value**
+
+`ZZ`
+
+**Stape code option**
+
+Disabled
+
+**Fallback values**
+
+1. `ABC`
+2. `DEF`
+
+**Output**
+
+`ZZ`
+
+The value is returned because Stape-specific validation is not active.
+
+---
+
+## Example: Ecommerce Value
 
 **Primary value**
 
 `{{Event Data - value}}`
+
+**Stape code option**
+
+Disabled
 
 **Fallback values**
 
@@ -438,7 +479,7 @@ Suppose the variables resolve to:
 - `{{Event Data - ecommerce.value}}` → `undefined`
 - `{{Custom Order Value}}` → `49.90`
 
-Output:
+**Output**
 
 `49.90`
 
@@ -446,11 +487,15 @@ The numeric type is preserved.
 
 ---
 
-## 💱 Example: Currency
+## Example: Currency
 
 **Primary value**
 
 `{{Event Data - currency}}`
+
+**Stape code option**
+
+Disabled
 
 **Fallback values**
 
@@ -462,29 +507,105 @@ Suppose the variables resolve to:
 - `{{Event Data - currency}}` → `""`
 - `{{Cookie - cart_currency}}` → `EUR`
 
-Output:
+**Output**
 
 `EUR`
 
 ---
 
-## 📋 Template Fields
+## Difference From a Standard Coalesce Variable
+
+A standard coalesce variable generally checks multiple values and returns the first populated or non-empty value.
+
+**Fallback Value** additionally performs built-in server-side validation before accepting a value.
+
+It automatically handles:
+
+- `null`
+- `undefined`
+- Boolean values
+- `NaN`
+- Empty strings
+- Whitespace-only strings
+- Objects and unsupported data types
+
+It also includes an optional validation mode specifically designed for Stape geographic data, allowing the `ZZ` placeholder to be rejected only when appropriate.
+
+In addition, valid values are returned without forcing them into a string representation, preserving their original type.
+
+This makes the template suitable for server-side data pipelines where:
+
+- A populated value is not necessarily a usable value
+- Numeric types need to remain numeric
+- Provider-specific placeholders need contextual validation
+- A generic skip list would otherwise need to be manually configured
+
+---
+
+## Why This Matters in Server-Side GTM
+
+Server-side containers frequently receive the same information from multiple sources.
+
+For example, a geographic property may be available from:
+
+- Event Data
+- Request headers
+- Stape geographic headers
+- Cookies
+- Custom variables
+- API responses
+- Static fallback values
+
+Some sources may return valid information while others may return:
+
+- `undefined`
+- `null`
+- `false`
+- `NaN`
+- `""`
+- `"   "`
+- `ZZ`
+
+A generic coalesce mechanism may treat some of these values as populated even when they should not be propagated downstream.
+
+Fallback Value combines ordered fallback logic with built-in validation and optional Stape-specific sanitization so that only a usable value is returned.
+
+---
+
+## Template Fields
 
 ### `primary_value`
 
-The main value evaluated by the variable.
+The main value evaluated first.
 
 If valid, it is returned immediately.
 
-If invalid, the template starts evaluating the fallback values.
+If invalid, the template evaluates the fallback values.
+
+### `stape_country_code`
+
+Optional checkbox.
+
+Checkbox label:
+
+**This variable is using Stape code (as country, zipcode, city and state)**
+
+Default state:
+
+Disabled
+
+Behavior:
+
+- Disabled → `ZZ` is accepted
+- Enabled → `ZZ` is rejected
 
 ### `alt_value`
 
-An ordered table of fallback values.
+An ordered table containing fallback values.
 
 Each row is evaluated sequentially.
 
-For example:
+Example:
 
 1. `{{Variable A}}`
 2. `{{Variable B}}`
@@ -495,9 +616,9 @@ The first valid value is returned.
 
 ---
 
-## 🧠 Internal Validation Logic
+## Internal Validation Logic
 
-The template follows these validation rules:
+The base validation logic behaves as follows:
 
     null        → invalid
     undefined   → invalid
@@ -506,7 +627,6 @@ The template follows these validation rules:
     NaN         → invalid
     ""          → invalid
     "   "       → invalid
-    "ZZ"        → invalid
     object      → invalid
     function    → invalid
 
@@ -514,11 +634,21 @@ The template follows these validation rules:
     number      → valid
     string      → valid
 
-Valid strings and numbers are returned without changing their original type.
+When Stape mode is enabled:
+
+    "ZZ"        → invalid
+    " ZZ "      → invalid
+
+When Stape mode is disabled:
+
+    "ZZ"        → valid
+    " ZZ "      → valid as the original string value
+
+The template uses the trimmed version only for validation. A valid string is returned in its original form.
 
 ---
 
-## 📤 Output Behavior
+## Output Behavior
 
 If the primary value is valid:
 
@@ -527,6 +657,10 @@ If the primary value is valid:
 If the primary value is invalid:
 
     evaluate alt_value rows
+
+If Stape mode is enabled:
+
+    reject "ZZ" values during evaluation
 
 If a valid fallback exists:
 
@@ -538,7 +672,7 @@ If every configured value is invalid:
 
 ---
 
-## 📝 Notes
+## Notes
 
 - Fallback values are evaluated strictly in configured order
 - Numeric `0` is considered valid
@@ -546,16 +680,19 @@ If every configured value is invalid:
 - `NaN` is rejected
 - Empty strings are rejected
 - Whitespace-only strings are rejected
-- The exact string `ZZ` is rejected
+- Objects and functions are rejected
 - Valid numbers remain numbers
 - Valid strings remain strings
-- Objects and functions are rejected
+- Stape `ZZ` filtering is optional
+- `ZZ` is accepted when the Stape option is disabled
+- `ZZ` is rejected when the Stape option is enabled
+- Surrounding whitespace is ignored when checking for `ZZ`
 - The variable returns `undefined` when no valid value is available
 - No template permissions are required
 
 ---
 
-## 👤 Author
+## Author
 
 **Stefano Ghisoni**  
 Website: [https://stefanoghisoni.it](https://stefanoghisoni.it)  
@@ -563,7 +700,7 @@ Email: [info@stefanoghisoni.it](mailto:info@stefanoghisoni.it)
 
 ---
 
-## 📜 License
+## License
 
 Licensed under the [Apache License, Version 2.0](LICENSE).
 
