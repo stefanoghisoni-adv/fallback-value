@@ -1,5 +1,5 @@
 homepage: "https://stefanoghisoni.it"
 documentation: "https://github.com/stefanoghisoni-adv/fallback-value/blob/main/README.md"
 versions:
-  - sha: 9997f07f92f196acc20f1393e5ea5a38b09fdb2d
-    changeNotes: "Initial release."
+  - sha: f430b88a1c814615d9f4dba912ea376dac00e71d
+    changeNotes: "Updated variable functions with Stape outoput conditions."
